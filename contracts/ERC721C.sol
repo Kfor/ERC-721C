@@ -1,18 +1,17 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.1;
 
 import "hardhat/console.sol";
-
 import "./ERC721T.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract ERC721C is ERC721T {
+contract ERC721C is ERC721T,ReentrancyGuard {
     constructor(
         string memory name_,
         string memory symbol_,
         uint256 maxBatchSize_,
         uint256 collectionSize_
-    )ERC721T( name_, symbol_, maxBatchSize_, collectionSize_){
-    }
+    )ERC721T( name_, symbol_, maxBatchSize_, collectionSize_){}
 
     struct TraitData {
         address addr;
@@ -22,8 +21,8 @@ contract ERC721C is ERC721T {
     mapping(uint256 => TraitData[10])  private _childrenTraitMapping;
     uint256 private price;
 
-//    function childTraitFactory() public payable returns (ERC721T) {
-//        return new ERC721T("t","ts",100,100);
+//    function childTraitFactory() public payable returns (ERC721C) {
+//        return new ERC721C("c","cs",100,100);
 //    }
 
     function transferFrom1(address from, address to, uint256 tokenId) public {
@@ -52,11 +51,11 @@ contract ERC721C is ERC721T {
         }
     }
 
-    TraitData[10] _traitDataList;
+    TraitData[10] storeTraitDataList;
     function mint(address[] calldata addressList, uint256[] calldata traitIdList) public payable {
         require(msg.value >= price, "value must be bigger than price");
         _safeMint(msg.sender, 1);
-        _childrenTraitMapping[totalSupply()] = _traitDataList;
+        _childrenTraitMapping[totalSupply()] = storeTraitDataList;
         for (uint256 i = 0; i < addressList.length; i++) {
             require(IERC721(addressList[i]).ownerOf(traitIdList[i])==msg.sender,"you must have this trait to mint");
             _childrenTraitMapping[totalSupply()][i] = TraitData(addressList[i], traitIdList[i]);
