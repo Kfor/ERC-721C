@@ -6,30 +6,94 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const ComposableMatchMan = await ethers.getContractFactory(
+    "ComposableMatchMan"
+  );
+  const composableMatchMan = await ComposableMatchMan.deploy(
+    "ComposableMatchMan",
+    "ERC721C",
+    2,
+    200,
+    20
+  );
+  await composableMatchMan.deployed();
+  console.log("ERC721C deployed to:", composableMatchMan.address);
+  const ComposableFactory = await ethers.getContractFactory(
+    "ComposableFactory"
+  );
+  const composableFactory = await ComposableFactory.deploy();
+  await composableFactory.deployed();
+  console.log("ComposableFactory deployed to:", composableFactory.address);
 
-  // We get the contract to deploy
-  // const Greeter = await ethers.getContractFactory("Greeter");
-  // const greeter = await Greeter.deploy("Hello, Hardhat!");
+  console.info(
+    "balance1",
+    await composableMatchMan.balanceOf(
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    )
+  );
+  await composableMatchMan.joinPool(composableFactory.address);
+  await composableMatchMan.mint();
 
-  // await greeter.deployed();
-  //
-  // console.log("Greeter deployed to:", greeter.address);
+  console.info(
+    "balance2",
+    await composableMatchMan.balanceOf(
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    )
+  );
 
-  const ERC721C = await ethers.getContractFactory("ERC721C");
-  const erc721c = await ERC721C.deploy("ERC721C", "ERC721C", 2, 200);
-  await erc721c.deployed();
-  console.log("ERC721C deployed to:", erc721c.address);
-  //
-  // const ERC721T = await ethers.getContractFactory("ERC721T");
-  // const erc721t = await ERC721T.deploy("ERC721T", "ERC721T", 2, 200);
-  // await erc721t.deployed();
-  // console.log("ERC721T deployed to:", erc721t.address);
+  const res = await composableFactory.quarksOf(composableMatchMan.address, 0);
+  console.info("tests res mint", res);
+  const approved = await composableMatchMan.setApprovalForAll(
+    composableFactory.address,
+    true
+  );
+  console.info("approved", approved);
+
+  const splitRes = await composableFactory.split(composableMatchMan.address, 0);
+  console.info("splitRes", splitRes);
+
+  console.info(
+    "balance3",
+    await composableMatchMan.balanceOf(
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    )
+  );
+
+  const quarkAddress = await composableMatchMan.getQuarkAddress();
+  const quarkEntity = await ethers.getContractAt("Quark", quarkAddress);
+
+  // test Q after split is owned by user
+  console.info(
+    "balance quark1",
+    await quarkEntity.balanceOf("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"),
+    await quarkEntity.balanceOf(composableFactory.address)
+  );
+
+  const quarkApproved = await quarkEntity.setApprovalForAll(
+    composableFactory.address,
+    true
+  );
+  console.info("approved quark", quarkApproved);
+
+  const composeRes = await composableFactory.compose(
+    quarkAddress,
+    [0, 1, 2, 3]
+  );
+
+  // test C after compose is owned by user
+  console.info(
+    "balance4",
+    await composableMatchMan.balanceOf(
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    )
+  );
+  console.info(
+    "balance quark2",
+    await quarkEntity.balanceOf("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"),
+    await quarkEntity.balanceOf(composableFactory.address)
+  );
+
+  console.info("All test done!");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

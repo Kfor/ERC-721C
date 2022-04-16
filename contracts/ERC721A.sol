@@ -1,9 +1,7 @@
-//SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.1;
+// SPDX-License-Identifier: MIT
 
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
@@ -12,18 +10,24 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "./Quark.sol";
-import "./IComposableFactory.sol";
-import "./IERC721C.sol";
 
-contract ERC721C is  
+/**
+ * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
+ * the Metadata and Enumerable extension. Built to optimize for lower gas during batch mints.
+ *
+ * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
+ *
+ * Assumes the number of issuable tokens (collection size) is capped and fits in a uint128.
+ *
+ * Does not support burning tokens to address(0).
+ */
+contract ERC721A is
   Context,
   ERC165,
   IERC721,
   IERC721Metadata,
-  IERC721Enumerable,
-  IERC721C {
-
+  IERC721Enumerable
+{
   using Address for address;
   using Strings for uint256;
 
@@ -38,10 +42,8 @@ contract ERC721C is
   }
 
   uint256 private currentIndex = 0;
-  // current number of pool mint
-  uint256 private currentUserMintNum = 0;
 
-  uint256 internal immutable userMintCollectionSize;
+  uint256 internal immutable collectionSize;
   uint256 internal immutable maxBatchSize;
 
   // Token name
@@ -63,18 +65,6 @@ contract ERC721C is
   // Mapping from owner to operator approvals
   mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-  // MAX value of uint256
-  uint256 private MAX_INT = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-
-  // quark contract address
-  address private _quarkAddress = address(0);
-
-  // layer count
-  uint8 private layerCount;
-
-  // pool address
-  address private splitAndCombinePoolAddress = address(0);
-
   /**
    * @dev
    * `maxBatchSize` refers to how much a minter can mint at a time.
@@ -84,35 +74,17 @@ contract ERC721C is
     string memory name_,
     string memory symbol_,
     uint256 maxBatchSize_,
-    uint256 userMintCollectionSize_,
-    uint8 layerCount_
+    uint256 collectionSize_
   ) {
     require(
-      userMintCollectionSize_ > 0,
-      "ERC721C: collection must have a nonzero supply"
+      collectionSize_ > 0,
+      "ERC721A: collection must have a nonzero supply"
     );
-    require(maxBatchSize_ > 0, "ERC721C: max batch size must be nonzero");
-    require(layerCount_ <= 30,"Layer count set Failed: greater than 30");
-    layerCount = layerCount_;
+    require(maxBatchSize_ > 0, "ERC721A: max batch size must be nonzero");
     _name = name_;
     _symbol = symbol_;
     maxBatchSize = maxBatchSize_;
-    userMintCollectionSize = userMintCollectionSize_;
-    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
-  }
-
-  function joinPool(address splitAndCombinePoolAddress_) public{
-    require(splitAndCombinePoolAddress == address(0),"Has been joined a SplitAndCombinePool");
-    require(IComposableFactory(splitAndCombinePoolAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"Join the Pool Failed.");
-    splitAndCombinePoolAddress = splitAndCombinePoolAddress_;
-  }
-
-  function getLayerCount() public view override returns (uint8) {
-      return layerCount;
-  }
-
-  function getQuarkAddress() public view returns (address) {
-    return _quarkAddress;
+    collectionSize = collectionSize_;
   }
 
   /**
@@ -271,7 +243,7 @@ contract ERC721C is
    * @dev See {IERC721-approve}.
    */
   function approve(address to, uint256 tokenId) public override {
-    address owner = ERC721C.ownerOf(tokenId);
+    address owner = ERC721A.ownerOf(tokenId);
     require(to != owner, "ERC721A: approval to current owner");
 
     require(
@@ -363,33 +335,6 @@ contract ERC721C is
     return tokenId < currentIndex;
   }
 
-  function poolMint(address to) external override returns(uint256){
-    require(splitAndCombinePoolAddress == msg.sender, "Pool Mint need a Binding Pool");
-    require(to != address(0), "ERC721C: mint to the zero address");
-    // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
-    uint256 startTokenId = currentIndex;
-    require(!_exists(startTokenId), "ERC721C: token already minted");
-    require(_quarkAddress != address(0),"ERC721C: Quark not bind");
-
-    _beforeTokenTransfers(address(0), to, startTokenId, 1);
-
-    AddressData memory addressData = _addressData[to];
-    _addressData[to] = AddressData(
-      addressData.balance + uint128(1),
-      addressData.numberMinted + uint128(1)
-    );
-    _ownerships[startTokenId] = TokenOwnership(to, uint64(block.timestamp));
-
-    emit Transfer(address(0), to, startTokenId);
-    require(
-      _checkOnERC721Received(address(0), to, currentIndex, ""),
-      "ERC721C: transfer to non ERC721Receiver implementer"
-    );
-    currentIndex++;
-    _afterTokenTransfers(address(0), to, startTokenId, 1);
-    return startTokenId;
-  }
-
   function _safeMint(address to, uint256 quantity) internal {
     _safeMint(to, quantity, "");
   }
@@ -411,12 +356,10 @@ contract ERC721C is
     bytes memory _data
   ) internal {
     uint256 startTokenId = currentIndex;
-    require(to != address(0), "ERC721C: mint to the zero address");
+    require(to != address(0), "ERC721A: mint to the zero address");
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
-    require(!_exists(startTokenId), "ERC721C: token already minted");
-    require(quantity <= maxBatchSize, "ERC721C: quantity to mint too high");
-    require(_quarkAddress != address(0),"ERC721C: Quark not bind");
-    require(currentUserMintNum + quantity <= userMintCollectionSize,"ERC721C: Mint reach the mint collection size");
+    require(!_exists(startTokenId), "ERC721A: token already minted");
+    require(quantity <= maxBatchSize, "ERC721A: quantity to mint too high");
 
     _beforeTokenTransfers(address(0), to, startTokenId, quantity);
 
@@ -429,25 +372,16 @@ contract ERC721C is
 
     uint256 updatedIndex = startTokenId;
 
-    require(splitAndCombinePoolAddress != address(0), "must join the pool before mint");
     for (uint256 i = 0; i < quantity; i++) {
-      // mint Quarks, add mapping
-      Quark(_quarkAddress).cMint(splitAndCombinePoolAddress, layerCount);
-      uint256[30] memory tokenIds;
-      for(uint8 j = 0;j < layerCount; j++){
-          tokenIds[j] = updatedIndex*layerCount+j;
-      }
-      IComposableFactory(splitAndCombinePoolAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
       emit Transfer(address(0), to, updatedIndex);
       require(
         _checkOnERC721Received(address(0), to, updatedIndex, _data),
-        "ERC721C: transfer to non ERC721Receiver implementer"
+        "ERC721A: transfer to non ERC721Receiver implementer"
       );
       updatedIndex++;
     }
 
     currentIndex = updatedIndex;
-    currentUserMintNum += quantity;
     _afterTokenTransfers(address(0), to, startTokenId, quantity);
   }
 
@@ -525,6 +459,30 @@ contract ERC721C is
   uint256 public nextOwnerToExplicitlySet = 0;
 
   /**
+   * @dev Explicitly set `owners` to eliminate loops in future calls of ownerOf().
+   */
+  function _setOwnersExplicit(uint256 quantity) internal {
+    uint256 oldNextOwnerToSet = nextOwnerToExplicitlySet;
+    require(quantity > 0, "quantity must be nonzero");
+    uint256 endIndex = oldNextOwnerToSet + quantity - 1;
+    if (endIndex > collectionSize - 1) {
+      endIndex = collectionSize - 1;
+    }
+    // We know if the last one in the group exists, all in the group exist, due to serial ordering.
+    require(_exists(endIndex), "not enough minted yet for this cleanup");
+    for (uint256 i = oldNextOwnerToSet; i <= endIndex; i++) {
+      if (_ownerships[i].addr == address(0)) {
+        TokenOwnership memory ownership = ownershipOf(i);
+        _ownerships[i] = TokenOwnership(
+          ownership.addr,
+          ownership.startTimestamp
+        );
+      }
+    }
+    nextOwnerToExplicitlySet = endIndex + 1;
+  }
+
+  /**
    * @dev Internal function to invoke {IERC721Receiver-onERC721Received} on a target address.
    * The call is not executed if the target address is not a contract.
    *
@@ -596,5 +554,4 @@ contract ERC721C is
     uint256 startTokenId,
     uint256 quantity
   ) internal virtual {}
-
 }
