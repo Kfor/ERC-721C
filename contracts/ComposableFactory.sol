@@ -41,7 +41,9 @@ contract ComposableFactory is IERC721Receiver {
         uint256 layerCount = IERC721C(erc721c).getLayerCount();
         bool[30] memory appeared;
 
-        require(qIds.length <= layerCount, "qIds length must less than layerCount");
+        require(qIds.length <= layerCount, "qIds length must be less than layerCount");
+        require(qIds.length > 0, "qIds length must be greater than layerCount");
+
         for(uint256 i = 0; i < qIds.length; i++) {
             require(!appeared[qIds[i] % layerCount], "qs cannot be in one layer");
             appeared[qIds[i] % layerCount] = true;
