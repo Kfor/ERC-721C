@@ -101,7 +101,7 @@ contract ERC721C is
     _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
   }
 
-  function joinPool(address splitAndCombinePoolAddress_) public{
+  function joinPool(address splitAndCombinePoolAddress_) public {
     require(splitAndCombinePoolAddress == address(0),"Has been joined a SplitAndCombinePool");
     require(IComposableFactory(splitAndCombinePoolAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"Join the Pool Failed.");
     splitAndCombinePoolAddress = splitAndCombinePoolAddress_;

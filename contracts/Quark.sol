@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ERC721Q.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Quark is ERC721Q, ReentrancyGuard {
   constructor(
@@ -26,7 +26,7 @@ contract Quark is ERC721Q, ReentrancyGuard {
     _baseTokenURI = baseURI;
   }
 
-  function withdrawMoney() external onlyOwner nonReentrant {
+  function withdraw() external onlyOwner nonReentrant {
     (bool success, ) = msg.sender.call{value: address(this).balance}("");
     require(success, "Transfer failed.");
   }
