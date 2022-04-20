@@ -12,6 +12,8 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
  * the Metadata and Enumerable extension. Built to optimize for lower gas during batch mints.
@@ -43,7 +45,7 @@ contract ERC721Q is
     uint128 numberMinted;
   }
 
-  uint256 private currentIndex = 0;
+  uint256 private currentIndex = 1; // start from 1 because 0 is reserved for judging exists
 
   uint256 internal immutable collectionSize;
   uint256 internal immutable maxBatchSize;
@@ -170,7 +172,6 @@ contract ERC721Q is
     if (tokenId >= maxBatchSize) {
       lowestTokenToCheck = tokenId - maxBatchSize + 1;
     }
-
     for (uint256 curr = tokenId; curr >= lowestTokenToCheck; curr--) {
       TokenOwnership memory ownership = _ownerships[curr];
       if (ownership.addr != address(0)) {

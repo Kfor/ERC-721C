@@ -1,5 +1,6 @@
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "./IERC721C.sol";
 import "hardhat/console.sol";
 
@@ -16,7 +17,7 @@ contract ComposableFactory is IERC721Receiver {
         address from,
         uint256 tokenId,
         bytes calldata data
-    ) external override returns (bytes4) {
+    ) external override pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
@@ -28,6 +29,8 @@ contract ComposableFactory is IERC721Receiver {
 
 
     function quarksOf(address erc721c, uint256 cId) external view returns(uint256[30] memory) {
+        // when cId is 0, means related token does not exist
+        require(CToQMapping[erc721c][cId][0] != 0, "token not exist");
         return CToQMapping[erc721c][cId];
     }
 
@@ -48,7 +51,7 @@ contract ComposableFactory is IERC721Receiver {
             require(!appeared[qIds[i] % layerCount], "qs cannot be in one layer");
             appeared[qIds[i] % layerCount] = true;
             // promise the target quark is owned by msg.sender, and transfer
-            IERC721(erc721q).transferFrom(msg.sender, address(this), qIds[i]);
+            IERC721(erc721q).safeTransferFrom(msg.sender, address(this), qIds[i]);
         }
         // mint the composed c to msg.sender
         uint256 newCId = IERC721C(erc721c).poolMint(msg.sender);
@@ -62,11 +65,16 @@ contract ComposableFactory is IERC721Receiver {
     function split(address erc721c, uint256 cId) external {
         require(IERC721(erc721c).ownerOf(cId) == msg.sender, "you must have this ERC721C to split");
         require(CToQMapping[erc721c][cId].length > 0, "can't split a composed ERC721C");
-        IERC721(erc721c).transferFrom(msg.sender, address(this), cId);
+        IERC721C(erc721c).burn(msg.sender, cId);
         uint256[30] memory qIds = CToQMapping[erc721c][cId];
         address erc721q = CToQAddressMapping[erc721c];
         for(uint256 i = 0; i < IERC721C(erc721c).getLayerCount(); i++) {
-            IERC721(erc721q).transferFrom(address(this), msg.sender, qIds[i]);
+            // if qIds[i] is 0, means related C is composed with less than layerCount quarks
+            if(qIds[i] == 0) {
+                break;
+            }
+            require(IERC721(erc721q).ownerOf(qIds[i]) == address(this), "no related quark");
+            IERC721(erc721q).safeTransferFrom(address(this), msg.sender, qIds[i]);
         }
         delete CToQMapping[erc721c][cId];
     }

@@ -13,17 +13,33 @@ async function main() {
     "ComposableMatchMan",
     "ERC721C",
     2,
-    200,
-    20
+    101,
+    7
   );
   await composableMatchMan.deployed();
   console.log("ERC721C deployed to:", composableMatchMan.address);
+  console.log("Q address", await composableMatchMan.getQuarkAddress());
   const ComposableFactory = await ethers.getContractFactory(
     "ComposableFactory"
   );
   const composableFactory = await ComposableFactory.deploy();
   await composableFactory.deployed();
   console.log("ComposableFactory deployed to:", composableFactory.address);
+
+  await composableMatchMan.joinPool(composableFactory.address);
+  console.log("Joined pool");
+
+  const txn = await composableMatchMan.mint();
+  await txn.wait();
+  console.log("Minted");
+  const res = await composableFactory.quarksOf(composableMatchMan.address, 0);
+  console.info("Quarks of 0:", res);
+  await composableMatchMan.setQuarkBaseURI(
+    "ipfs://QmS3beks3GhSbYuXPTeHv6EiELcg23hoBSQQXcxtS3fd3Z/"
+  );
+  await composableMatchMan.setBaseURI(
+    `https://composable-match-man.vercel.app/api/metadata/`
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

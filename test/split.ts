@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { it } from "mocha";
+import { BigNumber } from "ethers";
 
 describe("Greeter", function () {
   it("Should return the new greeting once it's changed", async function () {
@@ -15,7 +16,7 @@ describe("Greeter", function () {
       "ERC721C",
       2,
       200,
-      20
+      7
     );
     await composableMatchMan.deployed();
     console.log("ERC721C deployed to:", composableMatchMan.address);
@@ -48,11 +49,8 @@ describe("Greeter", function () {
     );
     console.info("approved", approved);
 
-    const splitRes = await composableFactory.split(
-      composableMatchMan.address,
-      1
-    );
-    console.info("splitRes", splitRes);
+    await composableFactory.split(composableMatchMan.address, 1);
+    console.info("splitRes");
 
     const balance = await composableMatchMan.balanceOf(primaryAccount.address);
     console.info("balance3", balance);
@@ -67,6 +65,7 @@ describe("Greeter", function () {
     );
     console.info("ttt", ttt, ttt1);
 
+    // quark
     const quarkAddress = await composableMatchMan.getQuarkAddress();
     const quarkEntity = await ethers.getContractAt("Quark", quarkAddress);
 
@@ -77,28 +76,40 @@ describe("Greeter", function () {
       await quarkEntity.balanceOf(composableFactory.address)
     );
 
-    const quarkApproved = await quarkEntity.setApprovalForAll(
-      composableFactory.address,
-      true
+    await quarkEntity.setApprovalForAll(composableFactory.address, true);
+    console.info("approved quark");
+
+    const qBalance = await quarkEntity.balanceOf(primaryAccount.address);
+    console.info("qBalance", qBalance);
+    for (let i = 0; i < Number(qBalance); i++) {
+      console.info(
+        await quarkEntity.tokenOfOwnerByIndex(primaryAccount.address, i),
+        "own quark id"
+      );
+    }
+
+    await composableFactory.compose(quarkAddress, [8, 9, 10, 11]);
+
+    console.info("composeRes");
+    // test C after compose is owned by user
+    const balance4 = await composableMatchMan.balanceOf(primaryAccount.address);
+    console.info("balance4", balance4);
+    console.info(
+      "balance quark2",
+      await quarkEntity.balanceOf(primaryAccount.address),
+      await quarkEntity.balanceOf(composableFactory.address)
     );
-    console.info("approved quark", quarkApproved);
-    //
-    // const composeRes = await composableFactory.compose(
-    //   quarkAddress,
-    //   [1, 2, 3, 4]
-    // );
-    //
-    // // test C after compose is owned by user
-    // console.info(
-    //   "balance4",
-    //   await composableMatchMan.balanceOf(primaryAccount.address)
-    // );
-    // console.info(
-    //   "balance quark2",
-    //   await quarkEntity.balanceOf(primaryAccount.address),
-    //   await quarkEntity.balanceOf(composableFactory.address)
-    // );
-    //
+
+    for (let i = 0; i < Number(balance4); i++) {
+      console.info(
+        await composableMatchMan.tokenOfOwnerByIndex(primaryAccount.address, i),
+        "own cmm id"
+      );
+    }
+    console.info(await composableMatchMan.getLayerCount(), "layer count");
+
+    await composableFactory.split(composableMatchMan.address, 3);
+
     // console.info("All test done!");
   });
 });

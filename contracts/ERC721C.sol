@@ -22,7 +22,8 @@ contract ERC721C is
   IERC721,
   IERC721Metadata,
   IERC721Enumerable,
-  IERC721C {
+  IERC721C,
+  Ownable {
 
   using Address for address;
   using Strings for uint256;
@@ -73,7 +74,9 @@ contract ERC721C is
   uint8 private layerCount;
 
   // pool address
-  address private splitAndCombinePoolAddress = address(0);
+  address private composableFactoryAddress = address(0);
+
+  uint256 private _currentCount = 0;
 
   /**
    * @dev
@@ -98,13 +101,13 @@ contract ERC721C is
     _symbol = symbol_;
     maxBatchSize = maxBatchSize_;
     userMintCollectionSize = userMintCollectionSize_;
-    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
+    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_ + 1));
   }
 
-  function joinPool(address splitAndCombinePoolAddress_) public {
-    require(splitAndCombinePoolAddress == address(0),"Has been joined a SplitAndCombinePool");
-    require(IComposableFactory(splitAndCombinePoolAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"Join the Pool Failed.");
-    splitAndCombinePoolAddress = splitAndCombinePoolAddress_;
+  function joinPool(address composableFactoryAddress_) public onlyOwner {
+    require(composableFactoryAddress == address(0),"Has been joined a SplitAndCombinePool");
+    require(IComposableFactory(composableFactoryAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"Join the Pool Failed.");
+    composableFactoryAddress = composableFactoryAddress_;
   }
 
   function getLayerCount() public view override returns (uint8) {
@@ -113,6 +116,31 @@ contract ERC721C is
 
   function getQuarkAddress() public view returns (address) {
     return _quarkAddress;
+  }
+
+  function burn(address tokenOwner, uint256 tokenId) external override {
+    require(msg.sender == composableFactoryAddress,"only factory can burn");
+    TokenOwnership memory prevOwnership = ownershipOf(tokenId);
+    bool isApprovedOrOwner = (tokenOwner == prevOwnership.addr ||
+            getApproved(tokenId) == tokenOwner ||
+            isApprovedForAll(prevOwnership.addr, tokenOwner));
+
+    require(isApprovedOrOwner, "ERC721C: caller is not approved or owner");
+    address owner = ownerOf(tokenId);
+    // Clear approvals
+    _approve(address(0), tokenId, prevOwnership.addr);
+    AddressData memory addressData = _addressData[tokenOwner];
+    _addressData[tokenOwner] = AddressData(
+      addressData.balance - 1,
+      addressData.numberMinted
+    );
+    _currentCount -= 1;
+    _ownerships[tokenId].addr = address(0);
+    emit Transfer(owner, address(0), tokenId);
+  }
+
+  function totalCount() public view returns (uint256) {
+    return _currentCount;
   }
 
   /**
@@ -150,12 +178,14 @@ contract ERC721C is
       if (ownership.addr != address(0)) {
         currOwnershipAddr = ownership.addr;
       }
+
       if (currOwnershipAddr == owner) {
         if (tokenIdsIdx == index) {
           return i;
         }
         tokenIdsIdx++;
       }
+      currOwnershipAddr = address(0);
     }
     revert("ERC721A: unable to get token of owner by index");
   }
@@ -364,7 +394,7 @@ contract ERC721C is
   }
 
   function poolMint(address to) external override returns(uint256){
-    require(splitAndCombinePoolAddress == msg.sender, "Pool Mint need a Binding Pool");
+    require(composableFactoryAddress == msg.sender, "Pool Mint need a Binding Pool");
     require(to != address(0), "ERC721C: mint to the zero address");
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     uint256 startTokenId = currentIndex;
@@ -386,6 +416,7 @@ contract ERC721C is
       "ERC721C: transfer to non ERC721Receiver implementer"
     );
     currentIndex++;
+    _currentCount++;
     _afterTokenTransfers(address(0), to, startTokenId, 1);
     return startTokenId;
   }
@@ -429,15 +460,16 @@ contract ERC721C is
 
     uint256 updatedIndex = startTokenId;
 
-    require(splitAndCombinePoolAddress != address(0), "must join the pool before mint");
+    require(composableFactoryAddress != address(0), "must join the pool before mint");
     for (uint256 i = 0; i < quantity; i++) {
       // mint Quarks, add mapping
-      Quark(_quarkAddress).cMint(splitAndCombinePoolAddress, layerCount);
+      Quark(_quarkAddress).cMint(composableFactoryAddress, layerCount);
       uint256[30] memory tokenIds;
-      for(uint8 j = 0;j < layerCount; j++){
-          tokenIds[j] = updatedIndex*layerCount+j;
+      for(uint8 j = 0; j < layerCount; j++){
+        // quark start from 1 so need to add 1
+        tokenIds[j] = updatedIndex * layerCount + j + 1;
       }
-      IComposableFactory(splitAndCombinePoolAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
+      IComposableFactory(composableFactoryAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
       emit Transfer(address(0), to, updatedIndex);
       require(
         _checkOnERC721Received(address(0), to, updatedIndex, _data),
@@ -447,6 +479,7 @@ contract ERC721C is
     }
 
     currentIndex = updatedIndex;
+    _currentCount += quantity;
     currentUserMintNum += quantity;
     _afterTokenTransfers(address(0), to, startTokenId, quantity);
   }
