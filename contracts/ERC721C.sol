@@ -119,7 +119,7 @@ contract ERC721C is
   }
 
   function burn(address tokenOwner, uint256 tokenId) external override {
-    require(msg.sender == composableFactoryAddress,"only factory can burn");
+    require(msg.sender == composableFactoryAddress, "only factory can burn");
     TokenOwnership memory prevOwnership = ownershipOf(tokenId);
     bool isApprovedOrOwner = (tokenOwner == prevOwnership.addr ||
             getApproved(tokenId) == tokenOwner ||
