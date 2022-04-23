@@ -1,7 +1,7 @@
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "./IERC721C.sol";
+import "./token/IERC721C.sol";
 import "hardhat/console.sol";
 
 contract ComposableFactory is IERC721Receiver {

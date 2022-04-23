@@ -12,8 +12,8 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "../interface/IComposableFactory.sol";
 import "./Quark.sol";
-import "./IComposableFactory.sol";
 import "./IERC721C.sol";
 
 contract ERC721C is  
