@@ -19,6 +19,11 @@ describe("ERC721C", function () {
     const signers = await ethers.getSigners();
     primaryAccount = signers[0];
     // Deploy C, Q and F
+    const ComposableFactory = await ethers.getContractFactory(
+      "ComposableFactory"
+    );
+    composableFactoryContract = await ComposableFactory.deploy();
+    await composableFactoryContract.deployed();
     const ComposablePandas = await ethers.getContractFactory(
       "ComposablePandas"
     );
@@ -27,21 +32,14 @@ describe("ERC721C", function () {
       "ERC721C",
       maxBatchSize,
       userMintCollectionSize,
-      layerCount
+      layerCount,
+      composableFactoryContract.address
     );
     await composablePandasContract.deployed();
-    const ComposableFactory = await ethers.getContractFactory(
-      "ComposableFactory"
-    );
-    composableFactoryContract = await ComposableFactory.deploy();
-    await composableFactoryContract.deployed();
+
     // Get Q address
     const quarkAddress = await composablePandasContract.getQuarkAddress();
     quarkContract = await ethers.getContractAt("Quark", quarkAddress);
-    // Join pool
-    await composablePandasContract.joinPool(
-      composableFactoryContract.address
-    );
     // Set base uri
     await composablePandasContract.setBaseURI(
       `https://composable-match-man.vercel.app/api/metadata/`

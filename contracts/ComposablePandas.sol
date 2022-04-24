@@ -9,7 +9,9 @@ contract ComposablePandas is ERC721C, ReentrancyGuard {
         string memory symbol_,
         uint256 maxBatchSize_,
         uint256 userMintCollectionSize_,
-        uint8 layerCount_) ERC721C(name_,symbol_,maxBatchSize_,userMintCollectionSize_,layerCount_) {}
+        uint8 layerCount_,
+        address composableFactoryAddress_)
+    ERC721C(name_,symbol_,maxBatchSize_,userMintCollectionSize_,layerCount_,composableFactoryAddress_) {}
 
     function mint() public payable {
         _safeMint(msg.sender, 1);
@@ -27,7 +29,7 @@ contract ComposablePandas is ERC721C, ReentrancyGuard {
     }
 
     function setQuarkBaseURI(string memory quarkBaseURI) public {
-        Quark(getQuarkAddress()).setBaseURI(quarkBaseURI);
+        Quark(_getQuarkAddress()).setBaseURI(quarkBaseURI);
     }
 
     function withdraw() external onlyOwner nonReentrant {
@@ -37,15 +39,6 @@ contract ComposablePandas is ERC721C, ReentrancyGuard {
     }
 
     function _withdrawQuarkToC() private nonReentrant {
-        Quark(getQuarkAddress()).withdraw();
+        Quark(_getQuarkAddress()).withdraw();
     }
-
-    function getOwnershipData(uint256 tokenId)
-    external
-    view
-    returns (TokenOwnership memory)
-    {
-        return ownershipOf(tokenId);
-    }
-
 }

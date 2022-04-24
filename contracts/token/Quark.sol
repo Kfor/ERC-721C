@@ -13,7 +13,7 @@ contract Quark is ERC721Q, ReentrancyGuard {
     string memory symbol_,
     uint256 layerCount,
     uint256 collectionSize_
-  ) ERC721Q(name_, symbol_, layerCount, collectionSize_){}
+  ) ERC721Q(name_, symbol_, layerCount, collectionSize_) {}
 
   function contractURI() public view returns (string memory) {
     return "https://composable-match-man.vercel.app/api/contractURI";
@@ -33,17 +33,5 @@ contract Quark is ERC721Q, ReentrancyGuard {
   function withdraw() external onlyOwner nonReentrant {
     (bool success, ) = msg.sender.call{value: address(this).balance}("");
     require(success, "Transfer failed.");
-  }
-
-  function setOwnersExplicit(uint256 quantity) external onlyOwner nonReentrant {
-    _setOwnersExplicit(quantity);
-  }
-
-  function getOwnershipData(uint256 tokenId)
-    external
-    view
-    returns (TokenOwnership memory)
-  {
-    return ownershipOf(tokenId);
   }
 }

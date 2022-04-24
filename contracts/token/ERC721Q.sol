@@ -82,9 +82,9 @@ contract ERC721Q is
   ) {
     require(
       collectionSize_ > 0,
-      "ERC721A: collection must have a nonzero supply"
+      "ERC721Q: collection must have a nonzero supply"
     );
-    require(maxBatchSize_ > 0, "ERC721A: max batch size must be nonzero");
+    require(maxBatchSize_ > 0, "ERC721Q: max batch size must be nonzero");
     _name = string(abi.encodePacked(name_,"_Quark"));
     _symbol = string(abi.encodePacked(symbol_,"QUARK"));
     maxBatchSize = maxBatchSize_;
@@ -102,7 +102,7 @@ contract ERC721Q is
    * @dev See {IERC721Enumerable-tokenByIndex}.
    */
   function tokenByIndex(uint256 index) public view override returns (uint256) {
-    require(index < totalSupply(), "ERC721A: global index out of bounds");
+    require(index < totalSupply(), "ERC721Q: global index out of bounds");
     return index;
   }
 
@@ -117,7 +117,7 @@ contract ERC721Q is
     override
     returns (uint256)
   {
-    require(index < balanceOf(owner), "ERC721A: owner index out of bounds");
+    require(index < balanceOf(owner), "ERC721Q: owner index out of bounds");
     uint256 numMintedSoFar = totalSupply();
     uint256 tokenIdsIdx = 0;
     address currOwnershipAddr = address(0);
@@ -133,7 +133,7 @@ contract ERC721Q is
         tokenIdsIdx++;
       }
     }
-    revert("ERC721A: unable to get token of owner by index");
+    revert("ERC721Q: unable to get token of owner by index");
   }
 
   /**
@@ -157,7 +157,7 @@ contract ERC721Q is
    * @dev See {IERC721-balanceOf}.
    */
   function balanceOf(address owner) public view override returns (uint256) {
-    require(owner != address(0), "ERC721A: balance query for the zero address");
+    require(owner != address(0), "ERC721Q: balance query for the zero address");
     return uint256(_addressData[owner].balance);
   }
 
@@ -166,7 +166,7 @@ contract ERC721Q is
     view
     returns (TokenOwnership memory)
   {
-    require(_exists(tokenId), "ERC721A: owner query for nonexistent token");
+    require(_exists(tokenId), "ERC721Q: owner query for nonexistent token");
 
     uint256 lowestTokenToCheck;
     if (tokenId >= maxBatchSize) {
@@ -179,7 +179,7 @@ contract ERC721Q is
       }
     }
 
-    revert("ERC721A: unable to determine the owner of token");
+    revert("ERC721Q: unable to determine the owner of token");
   }
 
   /**
@@ -239,11 +239,11 @@ contract ERC721Q is
    */
   function approve(address to, uint256 tokenId) public override {
     address owner = ERC721Q.ownerOf(tokenId);
-    require(to != owner, "ERC721A: approval to current owner");
+    require(to != owner, "ERC721Q: approval to current owner");
 
     require(
       _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-      "ERC721A: approve caller is not owner nor approved for all"
+      "ERC721Q: approve caller is not owner nor approved for all"
     );
 
     _approve(to, tokenId, owner);
@@ -253,7 +253,7 @@ contract ERC721Q is
    * @dev See {IERC721-getApproved}.
    */
   function getApproved(uint256 tokenId) public view override returns (address) {
-    require(_exists(tokenId), "ERC721A: approved query for nonexistent token");
+    require(_exists(tokenId), "ERC721Q: approved query for nonexistent token");
 
     return _tokenApprovals[tokenId];
   }
@@ -262,7 +262,7 @@ contract ERC721Q is
    * @dev See {IERC721-setApprovalForAll}.
    */
   function setApprovalForAll(address operator, bool approved) public override {
-    require(operator != _msgSender(), "ERC721A: approve to caller");
+    require(operator != _msgSender(), "ERC721Q: approve to caller");
 
     _operatorApprovals[_msgSender()][operator] = approved;
     emit ApprovalForAll(_msgSender(), operator, approved);
@@ -315,7 +315,7 @@ contract ERC721Q is
     _transfer(from, to, tokenId);
     require(
       _checkOnERC721Received(from, to, tokenId, _data),
-      "ERC721A: transfer to non ERC721Receiver implementer"
+      "ERC721Q: transfer to non ERC721Receiver implementer"
     );
   }
 
@@ -366,10 +366,10 @@ contract ERC721Q is
     bytes memory _data
   ) internal onlyOwner {
     uint256 startTokenId = currentIndex;
-    require(to != address(0), "ERC721A: mint to the zero address");
+    require(to != address(0), "ERC721Q: mint to the zero address");
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
-    require(!_exists(startTokenId), "ERC721A: token already minted");
-    require(quantity == maxBatchSize, "ERC721A: quantity to mint not match the layer count");
+    require(!_exists(startTokenId), "ERC721Q: token already minted");
+    require(quantity == maxBatchSize, "ERC721Q: quantity to mint not match the layer count");
 
     _beforeTokenTransfers(address(0), to, startTokenId, quantity);
 
@@ -418,14 +418,14 @@ contract ERC721Q is
 
     require(
       isApprovedOrOwner,
-      "ERC721A: transfer caller is not owner nor approved"
+      "ERC721Q: transfer caller is not owner nor approved"
     );
 
     require(
       prevOwnership.addr == from,
-      "ERC721A: transfer from incorrect owner"
+      "ERC721Q: transfer from incorrect owner"
     );
-    require(to != address(0), "ERC721A: transfer to the zero address");
+    require(to != address(0), "ERC721Q: transfer to the zero address");
 
     _beforeTokenTransfers(from, to, tokenId, 1);
 
@@ -515,7 +515,7 @@ contract ERC721Q is
         return retval == IERC721Receiver(to).onERC721Received.selector;
       } catch (bytes memory reason) {
         if (reason.length == 0) {
-          revert("ERC721A: transfer to non ERC721Receiver implementer");
+          revert("ERC721Q: transfer to non ERC721Receiver implementer");
         } else {
           assembly {
             revert(add(32, reason), mload(reason))

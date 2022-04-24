@@ -71,7 +71,7 @@ contract ERC721C is
   address private _quarkAddress = address(0);
 
   // layer count
-  uint8 private layerCount;
+  uint8 private _layerCount;
 
   // pool address
   address private composableFactoryAddress = address(0);
@@ -88,37 +88,42 @@ contract ERC721C is
     string memory symbol_,
     uint256 maxBatchSize_,
     uint256 userMintCollectionSize_,
-    uint8 layerCount_
+    uint8 layerCount_,
+    address composableFactoryAddress_
   ) {
     require(
       userMintCollectionSize_ > 0,
       "ERC721C: collection must have a nonzero supply"
     );
     require(maxBatchSize_ > 0, "ERC721C: max batch size must be nonzero");
-    layerCount = layerCount_;
+    _layerCount = layerCount_;
     _name = name_;
     _symbol = symbol_;
     maxBatchSize = maxBatchSize_;
     userMintCollectionSize = userMintCollectionSize_;
     _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
-  }
-
-  function joinPool(address composableFactoryAddress_) public onlyOwner {
-    require(composableFactoryAddress == address(0),"Has been joined a SplitAndCombinePool");
-    require(IComposableFactory(composableFactoryAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"Join the Pool Failed.");
+    require(IComposableFactory(composableFactoryAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"ERC721C: Join the Pool Failed.");
     composableFactoryAddress = composableFactoryAddress_;
   }
 
-  function getLayerCount() public view override returns (uint8) {
-      return layerCount;
+  function getLayerCount() external view override returns (uint8) {
+      return _layerCount;
   }
 
-  function getQuarkAddress() public view returns (address) {
+  function _getLayerCount() internal view returns (uint8) {
+    return _layerCount;
+  }
+
+  function getQuarkAddress() external view override returns (address) {
+    return _quarkAddress;
+  }
+
+  function _getQuarkAddress() internal view returns (address) {
     return _quarkAddress;
   }
 
   function burn(address tokenOwner, uint256 tokenId) external override {
-    require(msg.sender == composableFactoryAddress, "only factory can burn");
+    require(msg.sender == composableFactoryAddress, "ERC721C: only factory can burn");
     TokenOwnership memory prevOwnership = ownershipOf(tokenId);
     bool isApprovedOrOwner = (tokenOwner == prevOwnership.addr
     && (getApproved(tokenId) == tokenOwner || isApprovedForAll(prevOwnership.addr, composableFactoryAddress)));
@@ -136,7 +141,7 @@ contract ERC721C is
     emit Transfer(tokenOwner, address(0), tokenId);
   }
 
-  function totalCount() public view returns (uint256) {
+  function totalCount() public view override returns (uint256) {
     return _currentCount;
   }
 
@@ -151,7 +156,7 @@ contract ERC721C is
    * @dev See {IERC721Enumerable-tokenByIndex}.
    */
   function tokenByIndex(uint256 index) public view override returns (uint256) {
-    require(index < totalSupply(), "ERC721A: global index out of bounds");
+    require(index < totalSupply(), "ERC721C: global index out of bounds");
     return index;
   }
 
@@ -166,7 +171,7 @@ contract ERC721C is
     override
     returns (uint256)
   {
-    require(index < balanceOf(owner), "ERC721A: owner index out of bounds");
+    require(index < balanceOf(owner), "ERC721C: owner index out of bounds");
     uint256 numMintedSoFar = totalSupply();
     uint256 tokenIdsIdx = 0;
     address currOwnershipAddr = address(0);
@@ -184,7 +189,7 @@ contract ERC721C is
       }
       currOwnershipAddr = address(0);
     }
-    revert("ERC721A: unable to get token of owner by index");
+    revert("ERC721C: unable to get token of owner by index");
   }
 
   /**
@@ -208,14 +213,14 @@ contract ERC721C is
    * @dev See {IERC721-balanceOf}.
    */
   function balanceOf(address owner) public view override returns (uint256) {
-    require(owner != address(0), "ERC721A: balance query for the zero address");
+    require(owner != address(0), "ERC721C: balance query for the zero address");
     return uint256(_addressData[owner].balance);
   }
 
   function _numberMinted(address owner) internal view returns (uint256) {
     require(
       owner != address(0),
-      "ERC721A: number minted query for the zero address"
+      "ERC721C: number minted query for the zero address"
     );
     return uint256(_addressData[owner].numberMinted);
   }
@@ -225,7 +230,7 @@ contract ERC721C is
     view
     returns (TokenOwnership memory)
   {
-    require(_exists(tokenId), "ERC721A: owner query for nonexistent token");
+    require(_exists(tokenId), "ERC721C: owner query for nonexistent token");
 
     uint256 lowestTokenToCheck;
     if (tokenId >= maxBatchSize) {
@@ -239,7 +244,7 @@ contract ERC721C is
       }
     }
 
-    revert("ERC721A: unable to determine the owner of token");
+    revert("ERC721C: unable to determine the owner of token");
   }
 
   /**
@@ -299,11 +304,11 @@ contract ERC721C is
    */
   function approve(address to, uint256 tokenId) public override {
     address owner = ERC721C.ownerOf(tokenId);
-    require(to != owner, "ERC721A: approval to current owner");
+    require(to != owner, "ERC721C: approval to current owner");
 
     require(
       _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-      "ERC721A: approve caller is not owner nor approved for all"
+      "ERC721C: approve caller is not owner nor approved for all"
     );
 
     _approve(to, tokenId, owner);
@@ -313,7 +318,7 @@ contract ERC721C is
    * @dev See {IERC721-getApproved}.
    */
   function getApproved(uint256 tokenId) public view override returns (address) {
-    require(_exists(tokenId), "ERC721A: approved query for nonexistent token");
+    require(_exists(tokenId), "ERC721C: approved query for nonexistent token");
 
     return _tokenApprovals[tokenId];
   }
@@ -322,7 +327,7 @@ contract ERC721C is
    * @dev See {IERC721-setApprovalForAll}.
    */
   function setApprovalForAll(address operator, bool approved) public override {
-    require(operator != _msgSender(), "ERC721A: approve to caller");
+    require(operator != _msgSender(), "ERC721C: approve to caller");
 
     _operatorApprovals[_msgSender()][operator] = approved;
     emit ApprovalForAll(_msgSender(), operator, approved);
@@ -375,7 +380,7 @@ contract ERC721C is
     _transfer(from, to, tokenId);
     require(
       _checkOnERC721Received(from, to, tokenId, _data),
-      "ERC721A: transfer to non ERC721Receiver implementer"
+      "ERC721C: transfer to non ERC721Receiver implementer"
     );
   }
 
@@ -390,8 +395,8 @@ contract ERC721C is
     return tokenId < currentIndex;
   }
 
-  function poolMint(address to) external override returns(uint256){
-    require(composableFactoryAddress == msg.sender, "Pool Mint need a Binding Pool");
+  function poolMint(address to) external override returns(uint256) {
+    require(composableFactoryAddress == msg.sender, "ERC721C: Pool Mint need a Binding Pool");
     require(to != address(0), "ERC721C: mint to the zero address");
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     uint256 startTokenId = currentIndex;
@@ -460,10 +465,11 @@ contract ERC721C is
     require(composableFactoryAddress != address(0), "must join the pool before mint");
     for (uint256 i = 0; i < quantity; i++) {
       // mint Quarks, add mapping
-      Quark(_quarkAddress).cMint(composableFactoryAddress, layerCount);
-      uint256[] memory tokenIds = new uint256[](layerCount);
-      for(uint8 j = 0; j < layerCount; j++) {
-        tokenIds[j] = updatedIndex * layerCount + j;
+      Quark(_quarkAddress).cMint(composableFactoryAddress, _layerCount);
+      uint256[] memory tokenIds = new uint256[](_layerCount);
+      for(uint8 j = 0; j < _layerCount; j++) {
+        // use currentUserMintNum because when poolMint during mint, C to Q mapping should be calculate by currentUserMintNum
+        tokenIds[j] = currentUserMintNum * _layerCount + j;
       }
       IComposableFactory(composableFactoryAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
       emit Transfer(address(0), to, updatedIndex);
@@ -472,11 +478,11 @@ contract ERC721C is
         "ERC721C: transfer to non ERC721Receiver implementer"
       );
       updatedIndex++;
+      currentUserMintNum++;
     }
 
     currentIndex = updatedIndex;
     _currentCount += quantity;
-    currentUserMintNum += quantity;
     _afterTokenTransfers(address(0), to, startTokenId, quantity);
   }
 
@@ -503,14 +509,14 @@ contract ERC721C is
 
     require(
       isApprovedOrOwner,
-      "ERC721A: transfer caller is not owner nor approved"
+      "ERC721C: transfer caller is not owner nor approved"
     );
 
     require(
       prevOwnership.addr == from,
-      "ERC721A: transfer from incorrect owner"
+      "ERC721C: transfer from incorrect owner"
     );
-    require(to != address(0), "ERC721A: transfer to the zero address");
+    require(to != address(0), "ERC721C: transfer to the zero address");
 
     _beforeTokenTransfers(from, to, tokenId, 1);
 
@@ -576,7 +582,7 @@ contract ERC721C is
         return retval == IERC721Receiver(to).onERC721Received.selector;
       } catch (bytes memory reason) {
         if (reason.length == 0) {
-          revert("ERC721A: transfer to non ERC721Receiver implementer");
+          revert("ERC721C: transfer to non ERC721Receiver implementer");
         } else {
           assembly {
             revert(add(32, reason), mload(reason))
