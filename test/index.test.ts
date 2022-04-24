@@ -51,9 +51,12 @@ describe("ERC721C", function () {
     );
   });
   describe("Mint", async function () {
-    it("Should be 1 for Quark totalSupply because reserve offset", async function () {
-      const totalSupply = await quarkContract.totalSupply();
-      expect(totalSupply.toNumber()).to.equal(1);
+    it("Should be 0 for Quark and C totalSupply", async function () {
+      const cTotalSupply = await composableMatchManContract.totalSupply();
+      expect(cTotalSupply.toNumber()).to.equal(0);
+
+      const qTotalSupply = await quarkContract.totalSupply();
+      expect(qTotalSupply.toNumber()).to.equal(0);
     });
     it("Should be 0 for Quark and C for primary account when init", async function () {
       const quarkBalance = await quarkContract.balanceOf(

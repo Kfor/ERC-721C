@@ -45,7 +45,7 @@ contract ERC721Q is
     uint128 numberMinted;
   }
 
-  uint256 private currentIndex = 1; // start from 1 because 0 is reserved for judging exists
+  uint256 private currentIndex = 0;
 
   uint256 internal immutable collectionSize;
   uint256 internal immutable maxBatchSize;

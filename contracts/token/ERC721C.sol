@@ -95,13 +95,12 @@ contract ERC721C is
       "ERC721C: collection must have a nonzero supply"
     );
     require(maxBatchSize_ > 0, "ERC721C: max batch size must be nonzero");
-    require(layerCount_ <= 30,"Layer count set Failed: greater than 30");
     layerCount = layerCount_;
     _name = name_;
     _symbol = symbol_;
     maxBatchSize = maxBatchSize_;
     userMintCollectionSize = userMintCollectionSize_;
-    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_ + 1));
+    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
   }
 
   function joinPool(address composableFactoryAddress_) public onlyOwner {
@@ -464,10 +463,9 @@ contract ERC721C is
     for (uint256 i = 0; i < quantity; i++) {
       // mint Quarks, add mapping
       Quark(_quarkAddress).cMint(composableFactoryAddress, layerCount);
-      uint256[30] memory tokenIds;
-      for(uint8 j = 0; j < layerCount; j++){
-        // quark start from 1 so need to add 1
-        tokenIds[j] = updatedIndex * layerCount + j + 1;
+      uint256[] memory tokenIds = new uint256[](layerCount);
+      for(uint8 j = 0; j < layerCount; j++) {
+        tokenIds[j] = updatedIndex * layerCount + j;
       }
       IComposableFactory(composableFactoryAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
       emit Transfer(address(0), to, updatedIndex);
