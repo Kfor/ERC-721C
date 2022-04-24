@@ -120,12 +120,10 @@ contract ERC721C is
   function burn(address tokenOwner, uint256 tokenId) external override {
     require(msg.sender == composableFactoryAddress, "only factory can burn");
     TokenOwnership memory prevOwnership = ownershipOf(tokenId);
-    bool isApprovedOrOwner = (tokenOwner == prevOwnership.addr ||
-            getApproved(tokenId) == tokenOwner ||
-            isApprovedForAll(prevOwnership.addr, tokenOwner));
+    bool isApprovedOrOwner = (tokenOwner == prevOwnership.addr
+    && (getApproved(tokenId) == tokenOwner || isApprovedForAll(prevOwnership.addr, composableFactoryAddress)));
 
-    require(isApprovedOrOwner, "ERC721C: caller is not approved or owner");
-    address owner = ownerOf(tokenId);
+    require(isApprovedOrOwner, "ERC721C: caller is not approved or not owner");
     // Clear approvals
     _approve(address(0), tokenId, prevOwnership.addr);
     AddressData memory addressData = _addressData[tokenOwner];
@@ -135,7 +133,7 @@ contract ERC721C is
     );
     _currentCount -= 1;
     _ownerships[tokenId].addr = address(0);
-    emit Transfer(owner, address(0), tokenId);
+    emit Transfer(tokenOwner, address(0), tokenId);
   }
 
   function totalCount() public view returns (uint256) {
