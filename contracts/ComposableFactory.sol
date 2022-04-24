@@ -30,7 +30,7 @@ contract ComposableFactory is IERC721Receiver {
 
     function quarksOf(address erc721c, uint256 cId) external view returns(uint256[] memory) {
         // when cId is 0, means related token does not exist
-        require(CToQMapping[erc721c][cId][0] != 0, "token not exist");
+        require(CToQMapping[erc721c][cId].length != 0, "token not exist");
         return CToQMapping[erc721c][cId];
     }
 
@@ -45,7 +45,7 @@ contract ComposableFactory is IERC721Receiver {
         bool[] memory appeared = new bool[](layerCount);
 
         require(qIds.length <= layerCount, "qIds length must be less than layerCount");
-        require(qIds.length > 0, "qIds length must be greater than layerCount");
+        require(qIds.length > 0, "qIds length must be greater than 0");
 
         for(uint256 i = 0; i < qIds.length; i++) {
             require(!appeared[qIds[i] % layerCount], "qs cannot be in one layer");

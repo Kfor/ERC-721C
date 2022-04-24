@@ -6,28 +6,24 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const ComposablePandas = await ethers.getContractFactory(
-    "ComposablePandas"
-  );
-  const composablePandas = await ComposablePandas.deploy(
-    "ComposablePandas",
-    "ERC721C",
-    2,
-    101,
-    7
-  );
-  await composablePandas.deployed();
-  console.log("ERC721C deployed to:", composablePandas.address);
-  console.log("Q address", await composablePandas.getQuarkAddress());
   const ComposableFactory = await ethers.getContractFactory(
     "ComposableFactory"
   );
   const composableFactory = await ComposableFactory.deploy();
   await composableFactory.deployed();
   console.log("ComposableFactory deployed to:", composableFactory.address);
-
-  await composablePandas.joinPool(composableFactory.address);
-  console.log("Joined pool");
+  const ComposablePandas = await ethers.getContractFactory("ComposablePandas");
+  const composablePandas = await ComposablePandas.deploy(
+    "ComposablePandas",
+    "ERC721C",
+    10,
+    10,
+    15,
+    composableFactory.address
+  );
+  await composablePandas.deployed();
+  console.log("ERC721C deployed to:", composablePandas.address);
+  console.log("Q address", await composablePandas.getQuarkAddress());
 
   const txn = await composablePandas.mint();
   await txn.wait();
@@ -35,7 +31,7 @@ async function main() {
   const res = await composableFactory.quarksOf(composablePandas.address, 0);
   console.info("Quarks of 0:", res);
   await composablePandas.setQuarkBaseURI(
-    "ipfs://QmS3beks3GhSbYuXPTeHv6EiELcg23hoBSQQXcxtS3fd3Z/"
+    "ipfs://QmY3Cs4DpzVwbbqYDPAFRVeTiLs8VbXZbBJdEN47bx2enG/"
   );
   await composablePandas.setBaseURI(
     `https://composable-match-man.vercel.app/api/metadata/`
