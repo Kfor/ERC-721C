@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 describe("ERC721C", function () {
   let primaryAccount: SignerWithAddress;
-  let composableMatchManContract: Contract;
+  let composablePandasContract: Contract;
   let composableFactoryContract: Contract;
   let quarkContract: Contract;
   const maxBatchSize = 2;
@@ -19,40 +19,40 @@ describe("ERC721C", function () {
     const signers = await ethers.getSigners();
     primaryAccount = signers[0];
     // Deploy C, Q and F
-    const ComposableMatchMan = await ethers.getContractFactory(
-      "ComposableMatchMan"
+    const ComposablePandas = await ethers.getContractFactory(
+      "ComposablePandas"
     );
-    composableMatchManContract = await ComposableMatchMan.deploy(
-      "ComposableMatchMan",
+    composablePandasContract = await ComposablePandas.deploy(
+      "ComposablePandas",
       "ERC721C",
       maxBatchSize,
       userMintCollectionSize,
       layerCount
     );
-    await composableMatchManContract.deployed();
+    await composablePandasContract.deployed();
     const ComposableFactory = await ethers.getContractFactory(
       "ComposableFactory"
     );
     composableFactoryContract = await ComposableFactory.deploy();
     await composableFactoryContract.deployed();
     // Get Q address
-    const quarkAddress = await composableMatchManContract.getQuarkAddress();
+    const quarkAddress = await composablePandasContract.getQuarkAddress();
     quarkContract = await ethers.getContractAt("Quark", quarkAddress);
     // Join pool
-    await composableMatchManContract.joinPool(
+    await composablePandasContract.joinPool(
       composableFactoryContract.address
     );
     // Set base uri
-    await composableMatchManContract.setBaseURI(
+    await composablePandasContract.setBaseURI(
       `https://composable-match-man.vercel.app/api/metadata/`
     );
-    await composableMatchManContract.setQuarkBaseURI(
+    await composablePandasContract.setQuarkBaseURI(
       "ipfs://QmS3beks3GhSbYuXPTeHv6EiELcg23hoBSQQXcxtS3fd3Z/"
     );
   });
   describe("Mint", async function () {
     it("Should be 0 for Quark and C totalSupply", async function () {
-      const cTotalSupply = await composableMatchManContract.totalSupply();
+      const cTotalSupply = await composablePandasContract.totalSupply();
       expect(cTotalSupply.toNumber()).to.equal(0);
 
       const qTotalSupply = await quarkContract.totalSupply();
@@ -63,14 +63,14 @@ describe("ERC721C", function () {
         primaryAccount.address
       );
       expect(quarkBalance.toNumber()).to.equal(0);
-      const cBalance = await composableMatchManContract.balanceOf(
+      const cBalance = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
       expect(cBalance.toNumber()).to.equal(0);
     });
     it("Should allow mint", async function () {
-      await composableMatchManContract.mint();
-      const cBalance = await composableMatchManContract.balanceOf(
+      await composablePandasContract.mint();
+      const cBalance = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
       expect(cBalance.toNumber()).to.equal(1);
@@ -78,11 +78,11 @@ describe("ERC721C", function () {
   });
   describe("Split", async function () {
     before("Set approve for all", async function () {
-      await composableMatchManContract.setApprovalForAll(
+      await composablePandasContract.setApprovalForAll(
         composableFactoryContract.address,
         true
       );
-      const approvedCMM = await composableMatchManContract.isApprovedForAll(
+      const approvedCMM = await composablePandasContract.isApprovedForAll(
         primaryAccount.address,
         composableFactoryContract.address
       );
@@ -99,10 +99,10 @@ describe("ERC721C", function () {
     });
     it("Should be able to split and balance of C and Q should be 0 and layerCount", async function () {
       await composableFactoryContract.split(
-        composableMatchManContract.address,
+        composablePandasContract.address,
         0
       );
-      const balanceOfC = await composableMatchManContract.balanceOf(
+      const balanceOfC = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
       expect(balanceOfC.toNumber()).to.equal(0);
@@ -114,7 +114,7 @@ describe("ERC721C", function () {
         quarkContract.address,
         composeQIds
       );
-      const balanceOfC = await composableMatchManContract.balanceOf(
+      const balanceOfC = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
       expect(balanceOfC.toNumber()).to.equal(1);
@@ -123,10 +123,10 @@ describe("ERC721C", function () {
     });
     it("Should be able to re split", async function () {
       await composableFactoryContract.split(
-        composableMatchManContract.address,
+        composablePandasContract.address,
         1
       );
-      const balanceOfC = await composableMatchManContract.balanceOf(
+      const balanceOfC = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
       expect(balanceOfC.toNumber()).to.equal(0);
