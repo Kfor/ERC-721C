@@ -60,12 +60,11 @@ contract ComposableFactory is IERC721Receiver {
 
     function split(address erc721c, uint256 cId) external {
         require(IERC721(erc721c).ownerOf(cId) == msg.sender, "you must have this ERC721C to split");
-        require(CToQMapping[erc721c][cId].length > 0, "can't split a composed ERC721C");
+        require(CToQMapping[erc721c][cId].length > 0, "can't split a non-exists ERC721C");
         IERC721C(erc721c).burn(msg.sender, cId);
         uint256[] memory qIds = CToQMapping[erc721c][cId];
         address erc721q = CToQAddressMapping[erc721c];
-        for(uint256 i = 0; i < IERC721C(erc721c).getLayerCount() && i < qIds.length; i++) {
-            require(IERC721(erc721q).ownerOf(qIds[i]) == address(this), "no related quark");
+        for(uint256 i = 0; i < qIds.length; i++) {
             IERC721(erc721q).safeTransferFrom(address(this), msg.sender, qIds[i]);
         }
         delete CToQMapping[erc721c][cId];
