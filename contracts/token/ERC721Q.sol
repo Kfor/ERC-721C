@@ -161,6 +161,11 @@ contract ERC721Q is
     return uint256(_addressData[owner].balance);
   }
 
+  function numberMinted(address to) public view returns (uint256) {
+    require(to != address(0), "ERC721Q: balance query for the zero address");
+    return uint256(_addressData[to].numberMinted);
+  }
+
   function ownershipOf(uint256 tokenId)
     internal
     view
@@ -370,7 +375,7 @@ contract ERC721Q is
     require(to != address(0), "ERC721Q: mint to the zero address");
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     require(!_exists(startTokenId), "ERC721Q: token already minted");
-    require(quantity == maxBatchSize, "ERC721Q: quantity to mint not match the layer count");
+    require(quantity % maxBatchSize == 0, "ERC721Q: quantity to mint not match the layer count");
 
     _beforeTokenTransfers(address(0), to, startTokenId, quantity);
 

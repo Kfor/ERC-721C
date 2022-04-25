@@ -34,7 +34,7 @@ async function main() {
     "ipfs://QmY3Cs4DpzVwbbqYDPAFRVeTiLs8VbXZbBJdEN47bx2enG/"
   );
   await composablePandas.setBaseURI(
-    `https://composable-match-man.vercel.app/api/metadata/`
+    `https://commposable-pandas.vercal.app/api/metadata/`
   );
   await composablePandas.setContractURI(
     "https://commposable-pandas.vercal.app/api/contractURI"

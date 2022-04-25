@@ -39,7 +39,7 @@ contract ERC721C is
   }
 
   uint256 private currentIndex = 0;
-  // current number of pool mint
+  // current number of public mint
   uint256 private currentUserMintNum = 0;
 
   uint256 internal immutable userMintCollectionSize;
@@ -101,7 +101,7 @@ contract ERC721C is
     _symbol = symbol_;
     maxBatchSize = maxBatchSize_;
     userMintCollectionSize = userMintCollectionSize_;
-    _quarkAddress = address(new Quark(name_,symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
+    _quarkAddress = address(new Quark(name_, symbol_, layerCount_, uint256(layerCount_) * userMintCollectionSize_));
     require(IComposableFactory(composableFactoryAddress_).addQToCAddressMapping(_quarkAddress, address(this)),"ERC721C: Join the Pool Failed.");
     composableFactoryAddress = composableFactoryAddress_;
   }
@@ -120,6 +120,10 @@ contract ERC721C is
 
   function _getQuarkAddress() internal view returns (address) {
     return _quarkAddress;
+  }
+
+  function _getCurrentUserMintNum() internal view returns (uint256) {
+    return currentUserMintNum;
   }
 
   function burn(address tokenOwner, uint256 tokenId) external override {
@@ -408,7 +412,7 @@ contract ERC721C is
     AddressData memory addressData = _addressData[to];
     _addressData[to] = AddressData(
       addressData.balance + uint128(1),
-      addressData.numberMinted + uint128(1)
+      addressData.numberMinted
     );
     _ownerships[startTokenId] = TokenOwnership(to, uint64(block.timestamp));
 

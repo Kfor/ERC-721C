@@ -3,9 +3,12 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
 import { expect } from "chai";
+import { parseEther } from "ethers/lib/utils";
+import { expectException } from "../utils/expectExpect";
 
 describe("ERC721C", function () {
   let primaryAccount: SignerWithAddress;
+  let testMintAccount: SignerWithAddress;
   let composablePandasContract: Contract;
   let composableFactoryContract: Contract;
   let quarkContract: Contract;
@@ -18,6 +21,9 @@ describe("ERC721C", function () {
     // Set Primary Account
     const signers = await ethers.getSigners();
     primaryAccount = signers[0];
+    testMintAccount = signers[1];
+    console.info(`Primary Account: ${primaryAccount.address}`);
+    console.info(`Test Mint Account: ${testMintAccount.address}`);
     // Deploy C, Q and F
     const ComposableFactory = await ethers.getContractFactory(
       "ComposableFactory"
@@ -67,7 +73,7 @@ describe("ERC721C", function () {
       expect(cBalance.toNumber()).to.equal(0);
     });
     it("Should allow mint", async function () {
-      await composablePandasContract.mint();
+      await composablePandasContract.reserveMint(1);
       const cBalance = await composablePandasContract.balanceOf(
         primaryAccount.address
       );
@@ -130,6 +136,44 @@ describe("ERC721C", function () {
       expect(balanceOfC.toNumber()).to.equal(0);
       const balanceOfQ = await quarkContract.balanceOf(primaryAccount.address);
       expect(balanceOfQ.toNumber()).to.equal(layerCount);
+    });
+  });
+  describe("Public Mint", async function () {
+    before("Link Test Account", async function () {
+      composablePandasContract = await composablePandasContract.connect(
+        testMintAccount
+      );
+    });
+    it("Should not be available before set started", async function () {
+      await expectException(
+        composablePandasContract.publicMintC(2, {
+          value: parseEther("0.1"),
+        }),
+        "Composable Pandas: Public Mint C is not started"
+      );
+      await expectException(
+        composablePandasContract.publicMintBatchQ(2),
+        "Composable Pandas: Public Mint Q is not started"
+      );
+    });
+    it("Mint C", async function () {
+      await composablePandasContract
+        .connect(primaryAccount)
+        .setIsCPublicMintStart(true);
+      await composablePandasContract.publicMintC(2, {
+        value: parseEther("0.1"),
+      });
+    });
+    it("Mint Q", async function () {
+      await composablePandasContract
+        .connect(primaryAccount)
+        .setIsQuarkPublicMintStart(true);
+      await composablePandasContract.publicMintBatchQ(2);
+    });
+    it("Reserve Mint Q", async function () {
+      await composablePandasContract
+        .connect(primaryAccount)
+        .reserveMintBatchQ(20);
     });
   });
 });

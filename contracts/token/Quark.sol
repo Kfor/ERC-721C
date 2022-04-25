@@ -17,6 +17,14 @@ contract Quark is ERC721Q, ReentrancyGuard {
 
   string private _contractURI;
 
+  function mint(address to, uint256 quantity) public onlyOwner {
+    _safeMint(to, quantity);
+  }
+
+  function getMintedNumber(address to) public view returns (uint256) {
+    return numberMinted(to);
+  }
+
   function contractURI() public view returns (string memory) {
     return _contractURI;
   }

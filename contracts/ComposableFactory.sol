@@ -27,7 +27,6 @@ contract ComposableFactory is IERC721Receiver {
         return true;
     }
 
-
     function quarksOf(address erc721c, uint256 cId) external view returns(uint256[] memory) {
         // when cId is 0, means related token does not exist
         require(CToQMapping[erc721c][cId].length != 0, "token not exist");
