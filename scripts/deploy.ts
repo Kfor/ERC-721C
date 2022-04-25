@@ -15,32 +15,27 @@ async function main() {
   const ComposablePandas = await ethers.getContractFactory("ComposablePandas");
   const composablePandas = await ComposablePandas.deploy(
     "ComposablePandas",
-    "ERC721C",
-    10,
-    10,
-    15,
+    "CoPa",
+    2,
+    3000,
+    7,
     composableFactory.address
   );
   await composablePandas.deployed();
   console.log("ERC721C deployed to:", composablePandas.address);
   console.log("Q address", await composablePandas.getQuarkAddress());
 
-  const txn = await composablePandas.mint();
-  await txn.wait();
-  console.log("Minted");
-  const res = await composableFactory.quarksOf(composablePandas.address, 0);
-  console.info("Quarks of 0:", res);
   await composablePandas.setQuarkBaseURI(
-    "ipfs://QmY3Cs4DpzVwbbqYDPAFRVeTiLs8VbXZbBJdEN47bx2enG/"
+    "ipfs://QmacwcWNPn5aH6pvL1Hw5H7MWXw3AHE4tb3iMxtMVRm21E/"
   );
   await composablePandas.setBaseURI(
-    `https://commposable-pandas.vercal.app/api/metadata/`
+    `https://composable-pandas.vercal.app/api/metadata/`
   );
   await composablePandas.setContractURI(
-    "https://commposable-pandas.vercal.app/api/contractURI"
+    "https://composable-pandas.vercal.app/api/contractURI"
   );
   await composablePandas.setQuarkContractURI(
-    "https://commposable-pandas.vercal.app/api/contractURI"
+    "https://composable-pandas.vercal.app/api/contractURI"
   );
 }
 

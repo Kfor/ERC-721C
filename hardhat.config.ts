@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 
+import "hardhat-contract-sizer";
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
@@ -27,7 +28,6 @@ const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
     },
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
@@ -47,6 +47,11 @@ const config: HardhatUserConfig = {
     clear: true,
     flat: true,
     spacing: 2,
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
   },
 };
 

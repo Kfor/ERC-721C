@@ -149,11 +149,11 @@ describe("ERC721C", function () {
         composablePandasContract.publicMintC(2, {
           value: parseEther("0.1"),
         }),
-        "Composable Pandas: Public Mint C is not started"
+        "not started"
       );
       await expectException(
         composablePandasContract.publicMintBatchQ(2),
-        "Composable Pandas: Public Mint Q is not started"
+        "not started"
       );
     });
     it("Mint C", async function () {
