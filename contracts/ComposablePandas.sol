@@ -16,6 +16,19 @@ contract ComposablePandas is ERC721C, ReentrancyGuard {
     function mint() public payable {
         _safeMint(msg.sender, 1);
     }
+    string private _contractURI;
+
+    function contractURI() public view returns (string memory) {
+        return _contractURI;
+    }
+
+    function setContractURI(string calldata contractURI) public {
+        _contractURI = contractURI;
+    }
+
+    function setQuarkContractURI(string calldata contractURI) public {
+        Quark.setContractURI(contractURI);
+    }
 
     // metadata URI
     string private _baseTokenURI;

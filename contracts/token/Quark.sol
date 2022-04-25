@@ -15,8 +15,14 @@ contract Quark is ERC721Q, ReentrancyGuard {
     uint256 collectionSize_
   ) ERC721Q(name_, symbol_, layerCount, collectionSize_) {}
 
+  string private _contractURI;
+
   function contractURI() public view returns (string memory) {
-    return "https://composable-match-man.vercel.app/api/contractURI";
+    return _contractURI;
+  }
+
+  function setContractURI(string calldata contractURI) external onlyOwner {
+    _contractURI = contractURI;
   }
 
   // metadata URI

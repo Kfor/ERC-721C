@@ -36,6 +36,12 @@ async function main() {
   await composablePandas.setBaseURI(
     `https://composable-match-man.vercel.app/api/metadata/`
   );
+  await composablePandas.setContractURI(
+    "https://commposable-pandas.vercal.app/api/contractURI"
+  );
+  await composablePandas.setQuarkContractURI(
+    "https://commposable-pandas.vercal.app/api/contractURI"
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
