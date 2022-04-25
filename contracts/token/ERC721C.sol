@@ -465,11 +465,10 @@ contract ERC721C is
     require(composableFactoryAddress != address(0), "must join the pool before mint");
     for (uint256 i = 0; i < quantity; i++) {
       // mint Quarks, add mapping
-      Quark(_quarkAddress).cMint(composableFactoryAddress, _layerCount);
+      uint256 startQuarkIndex = Quark(_quarkAddress).cMint(composableFactoryAddress, _layerCount);
       uint256[] memory tokenIds = new uint256[](_layerCount);
       for(uint8 j = 0; j < _layerCount; j++) {
-        // use currentUserMintNum because when poolMint during mint, C to Q mapping should be calculate by currentUserMintNum
-        tokenIds[j] = currentUserMintNum * _layerCount + j;
+        tokenIds[j] = startQuarkIndex + j;
       }
       IComposableFactory(composableFactoryAddress).addCIdToQuarksMapping(_quarkAddress, updatedIndex, tokenIds);
       emit Transfer(address(0), to, updatedIndex);

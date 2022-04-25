@@ -330,7 +330,7 @@ contract ERC721Q is
     return tokenId < currentIndex;
   }
 
-  function cMint(address to, uint256 quantity) external onlyOwner {
+  function cMint(address to, uint256 quantity) external onlyOwner returns(uint256)  {
     require(
       totalSupply() + quantity <= collectionSize,
       "Mint Failed: out of collection size range"
@@ -343,6 +343,7 @@ contract ERC721Q is
     for (uint256 i = 0; i < numChunks; i++) {
       _safeMint(to, maxBatchSize);
     }
+    return currentIndex - quantity;
   }
 
   function _safeMint(address to, uint256 quantity) internal onlyOwner {
