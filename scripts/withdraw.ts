@@ -8,18 +8,10 @@ import { ethers } from "hardhat";
 async function main() {
   const composablePandas = await ethers.getContractAt(
     "ComposablePandas",
-    "0x51Eab00028B0569398EDD671882f8b679200DA05"
+    "0x48a6e5D20C2f14b6308ca902ABD2E842fA3216C4"
   );
 
-  await composablePandas.setBaseURI(
-    `https://composable-pandas.vercel.app/api/metadata/`
-  );
-  await composablePandas.setContractURI(
-    ""
-  );
-  await composablePandas.setQuarkContractURI(
-    "https://composable-pandas.vercel.app/api/contractURI"
-  );
+  await composablePandas.withdraw();
 }
 
 // We recommend this pattern to be able to use async/await everywhere

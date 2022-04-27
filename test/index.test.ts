@@ -42,10 +42,13 @@ describe("ERC721C", function () {
       composableFactoryContract.address
     );
     await composablePandasContract.deployed();
+    console.log("C:",composablePandasContract.address);
 
     // Get Q address
     const quarkAddress = await composablePandasContract.getQuarkAddress();
     quarkContract = await ethers.getContractAt("Quark", quarkAddress);
+    console.log("Q:",quarkAddress);
+
     // Set base uri
     await composablePandasContract.setBaseURI(
       `https://composable-match-man.vercel.app/api/metadata/`
@@ -174,6 +177,18 @@ describe("ERC721C", function () {
       await composablePandasContract
         .connect(primaryAccount)
         .reserveMintBatchQ(20);
+    });
+  });
+  describe("WithDraw", async function () {
+    before("Link Test Account", async function () {
+      composablePandasContract = await composablePandasContract.connect(
+        primaryAccount
+      );
+    });
+    it("with draw C", async function () {
+      await composablePandasContract
+        .connect(primaryAccount)
+        .withdraw();
     });
   });
 });

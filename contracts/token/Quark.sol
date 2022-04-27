@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ERC721Q.sol";
+import "hardhat/console.sol";
 
 contract Quark is ERC721Q, ReentrancyGuard, Ownable {
   constructor(

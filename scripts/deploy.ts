@@ -24,19 +24,6 @@ async function main() {
   await composablePandas.deployed();
   console.log("ERC721C deployed to:", composablePandas.address);
   console.log("Q address", await composablePandas.getQuarkAddress());
-
-  await composablePandas.setQuarkBaseURI(
-    "ipfs://QmacwcWNPn5aH6pvL1Hw5H7MWXw3AHE4tb3iMxtMVRm21E/"
-  );
-  await composablePandas.setBaseURI(
-    `https://composable-pandas.vercal.app/api/metadata/`
-  );
-  await composablePandas.setContractURI(
-    "https://composable-pandas.vercal.app/api/contractURI"
-  );
-  await composablePandas.setQuarkContractURI(
-    "https://composable-pandas.vercal.app/api/contractURI"
-  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

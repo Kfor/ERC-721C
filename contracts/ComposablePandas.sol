@@ -92,12 +92,11 @@ contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
     }
 
     function withdraw() external onlyOwner nonReentrant {
-        _withdrawQuarkToC();
+        Quark(_getQuarkAddress()).withdraw();
         (bool success, ) = msg.sender.call{value: address(this).balance}("");
-        require(success, "");
+        require(success, "Transfer failed.");
     }
 
-    function _withdrawQuarkToC() private nonReentrant {
-        Quark(_getQuarkAddress()).withdraw();
+    fallback() payable external  {
     }
 }

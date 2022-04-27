@@ -8,17 +8,14 @@ import { ethers } from "hardhat";
 async function main() {
   const composablePandas = await ethers.getContractAt(
     "ComposablePandas",
-    "0x51Eab00028B0569398EDD671882f8b679200DA05"
+    "0x387D36328f93c2229CD5CCc2cA9FFd20D1110dFe"
   );
 
-  await composablePandas.setBaseURI(
-    `https://composable-pandas.vercel.app/api/metadata/`
+  await composablePandas.setIsCPublicMintStart(
+    true
   );
-  await composablePandas.setContractURI(
-    ""
-  );
-  await composablePandas.setQuarkContractURI(
-    "https://composable-pandas.vercel.app/api/contractURI"
+  await composablePandas.setIsQuarkPublicMintStart(
+    true
   );
 }
 
