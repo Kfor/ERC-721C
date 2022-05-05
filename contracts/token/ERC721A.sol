@@ -123,6 +123,7 @@ contract ERC721A is
         }
         tokenIdsIdx++;
       }
+      currOwnershipAddr = address(0);
     }
     revert("unable to get token of owner by index");
   }

@@ -8,15 +8,11 @@ import { ethers } from "hardhat";
 async function main() {
   const composablePandas = await ethers.getContractAt(
     "ComposablePandas",
-    "0x387D36328f93c2229CD5CCc2cA9FFd20D1110dFe"
+    "0x9e75dF3160040d85f8114b43e6cfCe5A89Dcf0b7"
   );
 
-  await composablePandas.setIsCPublicMintStart(
-    true
-  );
-  await composablePandas.setIsQuarkPublicMintStart(
-    true
-  );
+  await composablePandas.setIsCPublicMintStart(true);
+  await composablePandas.setIsQuarkPublicMintStart(true);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
