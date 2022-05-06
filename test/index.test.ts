@@ -40,12 +40,12 @@ describe("ERC721C", function () {
       composableFactoryContract.address
     );
     await composablePandasContract.deployed();
-    console.log("C:",composablePandasContract.address);
+    console.log("C:", composablePandasContract.address);
 
     // Get Q address
     const quarkAddress = await composablePandasContract.getQuarkAddress();
     quarkContract = await ethers.getContractAt("Quark", quarkAddress);
-    console.log("Q:",quarkAddress);
+    console.log("Q:", quarkAddress);
 
     // Set base uri
     await composablePandasContract.setBaseURI(
@@ -184,9 +184,7 @@ describe("ERC721C", function () {
       );
     });
     it("with draw C", async function () {
-      await composablePandasContract
-        .connect(primaryAccount)
-        .withdraw();
+      await composablePandasContract.connect(primaryAccount).withdraw();
     });
   });
 });
