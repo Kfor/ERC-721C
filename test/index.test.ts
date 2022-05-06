@@ -12,7 +12,6 @@ describe("ERC721C", function () {
   let composablePandasContract: Contract;
   let composableFactoryContract: Contract;
   let quarkContract: Contract;
-  const maxBatchSize = 2;
   const userMintCollectionSize = 200;
   const layerCount = 20;
   const composeQIds = [2, 3, 5];
@@ -36,7 +35,6 @@ describe("ERC721C", function () {
     composablePandasContract = await ComposablePandas.deploy(
       "ComposablePandas",
       "ERC721C",
-      maxBatchSize,
       userMintCollectionSize,
       layerCount,
       composableFactoryContract.address

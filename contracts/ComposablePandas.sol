@@ -7,11 +7,10 @@ contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
 
     constructor(string memory name_,
         string memory symbol_,
-        uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint8 layerCount_,
         address composableFactoryAddress_)
-    ERC721C(name_,symbol_,maxBatchSize_,collectionSize_,layerCount_,composableFactoryAddress_) {}
+    ERC721C(name_,symbol_,layerCount_,collectionSize_,composableFactoryAddress_) {}
 
     uint256 private _currentPublicMintQBatchNum = 0;
     mapping(address => uint256) private _currentPublicMintQBatchNumByUser;
@@ -19,6 +18,9 @@ contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
     uint256 private cPublicPrice = 0.05 ether;
     bool private isCPublicMintStart = false;
     bool private isQuarkPublicMintStart = false;
+    uint256 private cPublicMintAmount = 200;
+    mapping(address => bool) private _cAddressAppeared;
+    mapping(address => uint256) private _cAddressStock;
 
     function setIsCPublicMintStart(bool isStart) public onlyOwner {
         isCPublicMintStart = isStart;
@@ -37,10 +39,16 @@ contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
 
     function publicMintC(uint256 quantity) public payable {
         require(isCPublicMintStart, "not started");
-        require(_getCurrentUserMintNum() + quantity <= 1000, "reached the maximum");
-        require(quantity + _numberMinted(msg.sender) <= 2, "Only 2 can be minted");
+        require(cPublicMintAmount >= quantity, "reached the C maximum");
+        if(!_cAddressAppeared[msg.sender]){
+            _cAddressAppeared[msg.sender] = true;
+            _cAddressStock[msg.sender] = 2;
+        }
+        require(_cAddressStock[msg.sender] >= quantity, "Only 2 can be minted");
         require(cPublicPrice * quantity <= msg.value, "Not enough");
-        _safeMint(msg.sender, quantity);
+        for(uint256 i = 0;i < quantity; i++){
+            safeMint(msg.sender);
+        }
     }
 
     function publicMintBatchQ(uint256 cQuantity) public {
@@ -59,7 +67,9 @@ contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
     }
 
     function reserveMint(uint256 quantity) public onlyOwner {
-        _safeMint(msg.sender, quantity);
+        for(uint256 i = 0;i < quantity;i++){
+            safeMint(msg.sender);
+        }
     }
 
     string private _contractURI;
