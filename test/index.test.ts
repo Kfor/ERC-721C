@@ -163,7 +163,7 @@ describe("ERC721C", function () {
         value: parseEther("0.1"),
       });
     });
-    it("Mint Q", async function () {
+    it("Mint Q and get owner", async function () {
       await composablePandasContract
         .connect(primaryAccount)
         .setIsQuarkPublicMintStart(true);

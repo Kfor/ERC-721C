@@ -352,6 +352,8 @@ contract ERC721Q is
   ) internal {
     uint256 startTokenId = currentIndex;
     require(to != address(0), "mint to the zero address");
+    require(totalSupply()+quantity <= collectionSize, "reached max");
+
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     require(!_exists(startTokenId), "token already minted");
     require(quantity % maxBatchSize == 0, "quantity to mint not match the layer count");
@@ -366,7 +368,7 @@ contract ERC721Q is
     uint256 updatedIndex = startTokenId;
     for(uint256 j = 0;j<chunk;j++){
       _ownerships[updatedIndex] = to;
-      for (uint256 i = 0; i < quantity; i++) {
+      for (uint256 i = 0; i < maxBatchSize; i++) {
         emit Transfer(address(0), to, updatedIndex);
         require(
           _checkOnERC721Received(address(0), to, updatedIndex, _data),
