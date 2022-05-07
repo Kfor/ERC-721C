@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./token/ERC721C.sol";
@@ -10,17 +15,19 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
         uint256 collectionSize_,
         uint8 layerCount_,
         address composableFactoryAddress_)
-    ERC721C(name_,symbol_,layerCount_,collectionSize_,composableFactoryAddress_) {}
+    ERC721C(name_,symbol_,collectionSize_,layerCount_,composableFactoryAddress_) {}
 
-    uint256 private _currentPublicMintQBatchNum = 0;
-    mapping(address => uint256) private _currentPublicMintQBatchNumByUser;
+    uint256 private qPublicMintAmount = 160;
 
     uint256 private cPublicPrice = 0.05 ether;
     bool private isCPublicMintStart = false;
     bool private isQuarkPublicMintStart = false;
-    uint256 private cPublicMintAmount = 200;
+    uint256 private cPublicMintAmount = 40;
     mapping(address => bool) private _cAddressAppeared;
     mapping(address => uint256) private _cAddressStock;
+
+    mapping(address => bool) private _qAddressAppeared;
+    mapping(address => uint256) private _qAddressStock;
 
     function setIsCPublicMintStart(bool isStart) public onlyOwner {
         isCPublicMintStart = isStart;
@@ -42,7 +49,7 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
         require(cPublicMintAmount >= quantity, "reached the C maximum");
         if(!_cAddressAppeared[msg.sender]){
             _cAddressAppeared[msg.sender] = true;
-            _cAddressStock[msg.sender] = 2;
+            _cAddressStock[msg.sender] = 5;
         }
         require(_cAddressStock[msg.sender] >= quantity, "Only 2 can be minted");
         require(cPublicPrice * quantity <= msg.value, "Not enough");
@@ -51,25 +58,31 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
         }
     }
 
-    function publicMintBatchQ(uint256 cQuantity) public {
+    function publicMintBatchQ(uint256 qQuantity) public {
         require(isQuarkPublicMintStart, "not started");
-        require(_currentPublicMintQBatchNum + cQuantity <= 1000,
-            "reached the maximum");
-        require(cQuantity + _currentPublicMintQBatchNumByUser[msg.sender] <= 2,
-            "Only 2 batch can be minted");
-        Quark(_getQuarkAddress()).mint(msg.sender, cQuantity * _getLayerCount());
-        _currentPublicMintQBatchNum += cQuantity;
-        _currentPublicMintQBatchNumByUser[msg.sender] += cQuantity;
+        require(qPublicMintAmount >= qQuantity, "reached the Q maximum");
+        if(!_qAddressAppeared[msg.sender]){
+            _qAddressAppeared[msg.sender] = true;
+            _qAddressStock[msg.sender] = 5;
+        }
+        require(_qAddressStock[msg.sender] >= qQuantity, "Only 2 can be minted");
+        Quark(_getQuarkAddress()).mint(msg.sender, qQuantity * _getLayerCount());
+        qPublicMintAmount -= qQuantity;
+        _qAddressStock[msg.sender] -= qQuantity;
     }
 
-    function reserveMintBatchQ(uint256 cQuantity) public onlyOwner {
-        Quark(_getQuarkAddress()).mint(msg.sender, cQuantity * _getLayerCount());
+    function reserveMintBatchQ(uint256 quantity) public onlyOwner {
+        require(qPublicMintAmount >= quantity, "reach the max");
+        Quark(_getQuarkAddress()).mint(msg.sender, quantity * _getLayerCount());
+        qPublicMintAmount -= quantity;
     }
 
     function reserveMint(uint256 quantity) public onlyOwner {
+        require(cPublicMintAmount >= quantity, "reach the max");
         for(uint256 i = 0;i < quantity;i++){
             safeMint(msg.sender);
         }
+        cPublicMintAmount -= quantity;
     }
 
     string private _contractURI;
@@ -108,5 +121,8 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
     }
 
     fallback() payable external  {
+    }
+
+    receive() external payable {
     }
 }

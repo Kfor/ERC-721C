@@ -16,8 +16,8 @@ async function main() {
   const composablePandas = await ComposablePandas.deploy(
     "WanderPandas",
     "WanPa",
-    2,
     200,
+    2,
     composableFactory.address
   );
   await composablePandas.deployed();
