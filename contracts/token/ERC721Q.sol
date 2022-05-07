@@ -357,7 +357,7 @@ contract ERC721Q is
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     require(!_exists(startTokenId), "token already minted");
     require(quantity % maxBatchSize == 0, "quantity to mint not match the layer count");
-    uint256 chunk = quantity/maxBatchSize;
+    uint256 chunk = quantity / maxBatchSize;
     _beforeTokenTransfers(address(0), to, startTokenId, quantity);
     AddressData memory addressData = _addressData[to];
     _addressData[to] = AddressData(
@@ -366,7 +366,7 @@ contract ERC721Q is
     );
     currentIndex += quantity;
     uint256 updatedIndex = startTokenId;
-    for(uint256 j = 0;j<chunk;j++){
+    for(uint256 j = 0; j < chunk; j++) {
       _ownerships[updatedIndex] = to;
       for (uint256 i = 0; i < maxBatchSize; i++) {
         emit Transfer(address(0), to, updatedIndex);
