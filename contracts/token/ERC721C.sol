@@ -66,8 +66,8 @@ contract ERC721C is
     constructor(
         string memory name_,
         string memory symbol_,
-        uint8 layerCount_,
         uint256 collectionSize_,
+        uint8 layerCount_,
         address composableFactoryAddress_
     ) {
         require(collectionSize_ > 0, "collection size should greater than 0");

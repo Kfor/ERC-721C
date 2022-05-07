@@ -10,7 +10,7 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
         uint256 collectionSize_,
         uint8 layerCount_,
         address composableFactoryAddress_)
-    ERC721C(name_,symbol_,layerCount_,collectionSize_,composableFactoryAddress_) {}
+    ERC721C(name_,symbol_,collectionSize_,layerCount_,composableFactoryAddress_) {}
 
     uint256 private _currentPublicMintQBatchNum = 0;
     mapping(address => uint256) private _currentPublicMintQBatchNumByUser;
