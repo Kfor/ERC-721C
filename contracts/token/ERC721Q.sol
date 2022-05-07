@@ -352,7 +352,6 @@ contract ERC721Q is
   ) internal {
     uint256 startTokenId = currentIndex;
     require(to != address(0), "mint to the zero address");
-    require(totalSupply()+quantity <= collectionSize, "reached max");
 
     // We know if the first token in the batch doesn't exist, the other ones don't as well, because of serial ordering.
     require(!_exists(startTokenId), "token already minted");
