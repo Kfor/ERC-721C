@@ -8,7 +8,7 @@ import { ethers } from "hardhat";
 async function main() {
   const composablePandas = await ethers.getContractAt(
     "WanderPandas",
-    "0xBe1720F5Affa74aB5016205D0dfFb354BBeeCE94"
+    "0xE5D3C7c207fA534DfB32f52D84964A371e98ef80"
   );
 
   await composablePandas.setIsCPublicMintStart(true);

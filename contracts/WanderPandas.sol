@@ -17,12 +17,11 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
         address composableFactoryAddress_)
     ERC721C(name_,symbol_,collectionSize_,layerCount_,composableFactoryAddress_) {}
 
-    uint256 private qPublicMintAmount = 160;
-
-    uint256 private cPublicPrice = 0.05 ether;
+    uint256 private cPublicPrice = 0 ether;
     bool private isCPublicMintStart = false;
     bool private isQuarkPublicMintStart = false;
-    uint256 private cPublicMintAmount = 40;
+    uint256 private qPublicMintAmount = 100;
+    uint256 private cPublicMintAmount = 100;
     mapping(address => bool) private _cAddressAppeared;
     mapping(address => uint256) private _cAddressStock;
 
@@ -47,42 +46,43 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
     function publicMintC(uint256 quantity) public payable {
         require(isCPublicMintStart, "not started");
         require(cPublicMintAmount >= quantity, "reached the C maximum");
-        if(!_cAddressAppeared[msg.sender]){
+        if(!_cAddressAppeared[msg.sender]) {
             _cAddressAppeared[msg.sender] = true;
             _cAddressStock[msg.sender] = 5;
         }
-        require(_cAddressStock[msg.sender] >= quantity, "Only 2 can be minted");
+        require(_cAddressStock[msg.sender] >= quantity, "Only 5 can be minted");
         require(cPublicPrice * quantity <= msg.value, "Not enough");
-        for(uint256 i = 0;i < quantity; i++){
+        _cAddressStock[msg.sender] -= quantity;
+        for(uint256 i = 0; i < quantity; i++) {
             safeMint(msg.sender);
         }
     }
 
-    function publicMintBatchQ(uint256 qQuantity) public {
+    function publicMintBatchQ(uint256 batchQuantity) public {
         require(isQuarkPublicMintStart, "not started");
-        require(qPublicMintAmount >= qQuantity, "reached the Q maximum");
-        if(!_qAddressAppeared[msg.sender]){
+        require(qPublicMintAmount >= batchQuantity, "reached the Q maximum");
+        if(!_qAddressAppeared[msg.sender]) {
             _qAddressAppeared[msg.sender] = true;
             _qAddressStock[msg.sender] = 5;
         }
-        require(_qAddressStock[msg.sender] >= qQuantity, "Only 2 can be minted");
-        Quark(_getQuarkAddress()).mint(msg.sender, qQuantity * _getLayerCount());
-        qPublicMintAmount -= qQuantity;
-        _qAddressStock[msg.sender] -= qQuantity;
+        require(_qAddressStock[msg.sender] >= batchQuantity, "Only 5 can be minted");
+        qPublicMintAmount -= batchQuantity;
+        _qAddressStock[msg.sender] -= batchQuantity;
+        Quark(_getQuarkAddress()).mint(msg.sender, batchQuantity * _getLayerCount());
     }
 
     function reserveMintBatchQ(uint256 quantity) public onlyOwner {
         require(qPublicMintAmount >= quantity, "reach the max");
-        Quark(_getQuarkAddress()).mint(msg.sender, quantity * _getLayerCount());
         qPublicMintAmount -= quantity;
+        Quark(_getQuarkAddress()).mint(msg.sender, quantity * _getLayerCount());
     }
 
     function reserveMint(uint256 quantity) public onlyOwner {
         require(cPublicMintAmount >= quantity, "reach the max");
-        for(uint256 i = 0;i < quantity;i++){
+        cPublicMintAmount -= quantity;
+        for(uint256 i = 0; i < quantity; i++) {
             safeMint(msg.sender);
         }
-        cPublicMintAmount -= quantity;
     }
 
     string private _contractURI;
@@ -123,6 +123,6 @@ contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
     fallback() payable external  {
     }
 
-    receive() external payable {
+    receive() payable external {
     }
 }

@@ -8,17 +8,13 @@ import { ethers } from "hardhat";
 async function main() {
   const composablePandas = await ethers.getContractAt(
     "WanderPandas",
-    "0x51Eab00028B0569398EDD671882f8b679200DA05"
+    "0xE5D3C7c207fA534DfB32f52D84964A371e98ef80"
   );
 
-  await composablePandas.setBaseURI(
-    `https://composable-pandas.vercel.app/api/metadata/`
-  );
-  await composablePandas.setContractURI(
-    ""
-  );
+  await composablePandas.setBaseURI(`https://wanderpandas.io/api/metadata/`);
+  await composablePandas.setContractURI("");
   await composablePandas.setQuarkContractURI(
-    "https://composable-pandas.vercel.app/api/contractURI"
+    "https://wanderpandas.io/api/contractURI"
   );
 }
 

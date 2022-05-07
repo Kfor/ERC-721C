@@ -138,6 +138,9 @@ contract ERC721C is
         require(index < balanceOf(owner), "owner index out of bounds");
 
         for (uint256 i = 0; i < totalSupply(); i++) {
+            if (!_exists(i)) {
+                continue;
+            }
             if (ownerOf(i) == owner) {
                 if (index == 0) {
                     return i;
