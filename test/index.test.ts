@@ -29,11 +29,9 @@ describe("ERC721C", function () {
     );
     composableFactoryContract = await ComposableFactory.deploy();
     await composableFactoryContract.deployed();
-    const ComposablePandas = await ethers.getContractFactory(
-      "ComposablePandas"
-    );
+    const ComposablePandas = await ethers.getContractFactory("WanderPandas");
     composablePandasContract = await ComposablePandas.deploy(
-      "ComposablePandas",
+      "WanderPandas",
       "ERC721C",
       userMintCollectionSize,
       layerCount,

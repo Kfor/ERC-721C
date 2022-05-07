@@ -3,7 +3,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./token/ERC721C.sol";
 import "./token/Quark.sol";
 
-contract ComposablePandas is ERC721C, ReentrancyGuard, Ownable {
+contract WanderPandas is ERC721C, ReentrancyGuard, Ownable {
 
     constructor(string memory name_,
         string memory symbol_,

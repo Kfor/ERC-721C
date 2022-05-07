@@ -12,13 +12,12 @@ async function main() {
   const composableFactory = await ComposableFactory.deploy();
   await composableFactory.deployed();
   console.log("ComposableFactory deployed to:", composableFactory.address);
-  const ComposablePandas = await ethers.getContractFactory("ComposablePandas");
+  const ComposablePandas = await ethers.getContractFactory("WanderPandas");
   const composablePandas = await ComposablePandas.deploy(
-    "ComposablePandas",
-    "CoPa",
+    "WanderPandas",
+    "WanPa",
     2,
-    3000,
-    7,
+    200,
     composableFactory.address
   );
   await composablePandas.deployed();
