@@ -122,6 +122,10 @@ contract ERC721C is
             tokenOwner == ownerOf(tokenId),
             "tokenOwner should be owner of token"
         );
+        require(
+            isApprovedForAll(tokenOwner ,_msgSender()),
+            "burn caller is not approved"
+        );
         _burn(tokenId);
     }
 
